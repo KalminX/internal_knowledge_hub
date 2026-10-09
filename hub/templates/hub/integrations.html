@@ -4,56 +4,56 @@
 
 {% block content %}
 <div class="flex-1 flex flex-col h-screen overflow-y-auto bg-slate-950 text-slate-100 p-8 space-y-6">
-  <div class="pb-6 border-b border-slate-800">
-    <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-      <span>🔌</span>
-      <span>Cloud Document Connectors & Ingestion Architecture</span>
+  <div class="pb-6 border-b border-slate-800/80">
+    <h1 class="text-lg font-semibold tracking-tight text-white flex items-center gap-2">
+      <i data-lucide="network" class="w-5 h-5 text-blue-400"></i>
+      <span>Cloud Storage Connectors & Ingestion Architecture</span>
     </h1>
     <p class="text-xs text-slate-400 mt-1">
-      Production interface specifications for enterprise cloud storage synchronization with automated access control mapping.
+      Production connector interfaces for continuous cloud storage synchronization with automated access control mapping.
     </p>
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     <!-- Google Drive Connector -->
-    <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+    <div class="connector-card p-6 rounded-xl bg-slate-900/40 border border-slate-800 space-y-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-blue-900/40 border border-blue-800/80 text-blue-400 flex items-center justify-center font-bold">
+          <div class="w-9 h-9 rounded-lg bg-blue-950/60 border border-blue-800/60 text-blue-400 flex items-center justify-center font-mono font-bold text-xs">
             GD
           </div>
           <div>
             <h2 class="text-sm font-semibold text-white">Google Drive Connector</h2>
-            <p class="text-[11px] text-slate-400">OAuth 2.0 with Least-Privilege Scopes</p>
+            <p class="text-[11px] text-slate-400">OAuth 2.0 Least-Privilege Scopes</p>
           </div>
         </div>
-        <span class="px-2.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400 border border-slate-700 font-mono">
-          Ready for Credentials
+        <span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 border border-slate-700 text-slate-400 font-mono">
+          Ready for Keys
         </span>
       </div>
 
       <div class="space-y-2 text-xs text-slate-300">
-        <div class="font-semibold text-slate-400 text-[11px] uppercase tracking-wider">Required OAuth Scopes:</div>
-        <ul class="space-y-1 font-mono text-[11px] text-slate-400 bg-slate-950 p-3 rounded-lg border border-slate-800">
+        <div class="font-semibold text-slate-400 text-[10px] uppercase tracking-wider font-mono">Required OAuth Scopes:</div>
+        <ul class="space-y-1 font-mono text-[10px] text-slate-400 bg-slate-950/80 p-3 rounded-lg border border-slate-800/80">
           <li>• https://www.googleapis.com/auth/drive.readonly</li>
           <li>• https://www.googleapis.com/auth/drive.metadata.readonly</li>
         </ul>
       </div>
 
-      <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 text-xs space-y-1.5 text-slate-400">
-        <div class="font-semibold text-slate-300 flex items-center gap-1.5">
-          <span>🔑</span>
-          <span>Configuration Parameters:</span>
+      <div class="p-3 rounded-lg bg-slate-950/60 border border-slate-800/80 text-xs space-y-1 text-slate-400 font-mono">
+        <div class="font-semibold text-slate-300 flex items-center gap-1.5 text-[11px]">
+          <i data-lucide="key" class="w-3.5 h-3.5 text-blue-400"></i>
+          <span>Configuration Keys:</span>
         </div>
-        <p class="text-[11px]">Set <code class="text-blue-300">GOOGLE_CLIENT_ID</code> and <code class="text-blue-300">GOOGLE_CLIENT_SECRET</code> in environment.</p>
+        <p class="text-[10px]">Provide <code class="text-blue-300">GOOGLE_CLIENT_ID</code> and <code class="text-blue-300">GOOGLE_CLIENT_SECRET</code> in .env.</p>
       </div>
     </div>
 
     <!-- SharePoint Connector -->
-    <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+    <div class="connector-card p-6 rounded-xl bg-slate-900/40 border border-slate-800 space-y-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-emerald-900/40 border border-emerald-800/80 text-emerald-400 flex items-center justify-center font-bold">
+          <div class="w-9 h-9 rounded-lg bg-emerald-950/60 border border-emerald-800/60 text-emerald-400 flex items-center justify-center font-mono font-bold text-xs">
             MS
           </div>
           <div>
@@ -61,38 +61,52 @@
             <p class="text-[11px] text-slate-400">Azure AD Application Permissions</p>
           </div>
         </div>
-        <span class="px-2.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400 border border-slate-700 font-mono">
-          Ready for Credentials
+        <span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 border border-slate-700 text-slate-400 font-mono">
+          Ready for Keys
         </span>
       </div>
 
       <div class="space-y-2 text-xs text-slate-300">
-        <div class="font-semibold text-slate-400 text-[11px] uppercase tracking-wider">Required Microsoft Graph Permissions:</div>
-        <ul class="space-y-1 font-mono text-[11px] text-slate-400 bg-slate-950 p-3 rounded-lg border border-slate-800">
+        <div class="font-semibold text-slate-400 text-[10px] uppercase tracking-wider font-mono">Required Microsoft Graph Scopes:</div>
+        <ul class="space-y-1 font-mono text-[10px] text-slate-400 bg-slate-950/80 p-3 rounded-lg border border-slate-800/80">
           <li>• Sites.Read.All (Application Scope)</li>
-          <li>• Files.Read.All (Delegated or App)</li>
+          <li>• Files.Read.All (Delegated or App Scope)</li>
         </ul>
       </div>
 
-      <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 text-xs space-y-1.5 text-slate-400">
-        <div class="font-semibold text-slate-300 flex items-center gap-1.5">
-          <span>🔑</span>
-          <span>Configuration Parameters:</span>
+      <div class="p-3 rounded-lg bg-slate-950/60 border border-slate-800/80 text-xs space-y-1 text-slate-400 font-mono">
+        <div class="font-semibold text-slate-300 flex items-center gap-1.5 text-[11px]">
+          <i data-lucide="key" class="w-3.5 h-3.5 text-emerald-400"></i>
+          <span>Configuration Keys:</span>
         </div>
-        <p class="text-[11px]">Set <code class="text-emerald-300">AZURE_TENANT_ID</code>, <code class="text-emerald-300">AZURE_CLIENT_ID</code>, and <code class="text-emerald-300">AZURE_CLIENT_SECRET</code> in environment.</p>
+        <p class="text-[10px]">Provide <code class="text-emerald-300">AZURE_TENANT_ID</code>, <code class="text-emerald-300">AZURE_CLIENT_ID</code> in .env.</p>
       </div>
     </div>
   </div>
 
   <!-- Synchronized Lifecycle -->
-  <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
-    <h3 class="text-sm font-bold text-white flex items-center gap-2">
-      <span>🔄</span>
-      <span>Synchronized Access-Control Ingestion Lifecycle</span>
+  <div class="p-6 rounded-xl bg-slate-900/40 border border-slate-800 space-y-2.5">
+    <h3 class="text-xs font-semibold text-white uppercase tracking-wider flex items-center gap-2">
+      <i data-lucide="refresh-cw" class="w-4 h-4 text-blue-400"></i>
+      <span>Synchronized Document Lifecycle & Instant Invalidation</span>
     </h3>
     <p class="text-xs text-slate-400 leading-relaxed">
-      Cloud document imports preserve file modification timestamps, origin URLs, and document permissions. When a file is updated, restricted, or deleted in Google Drive or SharePoint, the connector synchronizes the update: old chunks are pruned immediately to prevent stale or unauthorized knowledge leakage.
+      Cloud connectors preserve file SHA-256 signatures, timestamps, and permissions. When documents change or are archived in Google Drive or SharePoint, the synchronization worker executes immediate pruning of obsolete vector embeddings to prevent orphan chunk contamination.
     </p>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    if (typeof gsap !== 'undefined') {
+      gsap.from('.connector-card', {
+        opacity: 0,
+        y: 10,
+        duration: 0.35,
+        stagger: 0.08,
+        ease: 'power2.out'
+      });
+    }
+  });
+</script>
 {% endblock %}

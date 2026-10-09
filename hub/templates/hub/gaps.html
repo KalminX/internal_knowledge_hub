@@ -4,19 +4,19 @@
 
 {% block content %}
 <div class="flex-1 flex flex-col h-screen overflow-hidden bg-slate-950 text-slate-100 p-8">
-  <div class="pb-6 border-b border-slate-800">
-    <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-      <span>⚠️</span>
+  <div class="pb-6 border-b border-slate-800/80">
+    <h1 class="text-lg font-semibold tracking-tight text-white flex items-center gap-2">
+      <i data-lucide="help-circle" class="w-5 h-5 text-amber-400"></i>
       <span>Knowledge Gaps & Unanswered Questions</span>
     </h1>
     <p class="text-xs text-slate-400 mt-1">
-      Questions where the assistant abstained or users reported missing documentation, queued for editorial review.
+      Unanswered queries, abstentions, and missing policy requests queued for documentation triage.
     </p>
   </div>
 
-  <div class="mt-6 flex-1 overflow-y-auto border border-slate-800 rounded-xl bg-slate-900/60">
+  <div class="mt-6 flex-1 overflow-y-auto border border-slate-800/80 rounded-xl bg-slate-900/40">
     <table class="w-full text-left text-xs">
-      <thead class="bg-slate-900 border-b border-slate-800 text-slate-400 uppercase tracking-wider text-[10px] font-semibold sticky top-0">
+      <thead class="bg-slate-900/90 border-b border-slate-800 text-slate-400 uppercase tracking-wider text-[10px] font-semibold sticky top-0 backdrop-blur-sm">
         <tr>
           <th class="px-4 py-3">Unanswered Question</th>
           <th class="px-4 py-3">Trigger Reason</th>
@@ -25,18 +25,18 @@
           <th class="px-4 py-3 text-right">Workflow Action</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-slate-800/60">
+      <tbody class="divide-y divide-slate-800/60" id="gapsTbody">
         {% for gap in gaps %}
-          <tr class="hover:bg-slate-800/40 transition-colors">
+          <tr class="gap-row hover:bg-slate-850/50 transition-colors">
             <td class="px-4 py-3.5 font-medium text-slate-200 max-w-md">
-              <div class="flex items-start gap-2">
-                <span class="text-amber-400">❓</span>
-                <span>{{ gap.question_text }}</span>
+              <div class="flex items-start gap-2.5">
+                <i data-lucide="alert-circle" class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"></i>
+                <span class="leading-relaxed">{{ gap.question_text }}</span>
               </div>
             </td>
-            <td class="px-4 py-3.5 text-slate-400">{{ gap.reason }}</td>
+            <td class="px-4 py-3.5 text-slate-400 font-mono text-[11px]">{{ gap.reason }}</td>
             <td class="px-4 py-3.5">
-              <span class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase {% if gap.status == 'addressed' %}bg-emerald-950 text-emerald-400 border border-emerald-800{% elif gap.status == 'reviewed' %}bg-blue-950 text-blue-400 border border-blue-800{% else %}bg-amber-950 text-amber-400 border border-amber-800{% endif %}">
+              <span class="px-2 py-0.5 rounded text-[10px] font-mono uppercase {% if gap.status == 'addressed' %}bg-emerald-950/60 text-emerald-400 border border-emerald-800/50{% elif gap.status == 'reviewed' %}bg-blue-950/60 text-blue-400 border border-blue-800/50{% else %}bg-amber-950/60 text-amber-400 border border-amber-800/50{% endif %}">
                 {{ gap.status }}
               </span>
             </td>
@@ -50,7 +50,7 @@
                 <select
                   name="status"
                   onchange="this.form.submit()"
-                  class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none"
+                  class="bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-blue-500 font-mono"
                 >
                   <option value="pending" {% if gap.status == 'pending' %}selected{% endif %}>Pending</option>
                   <option value="reviewed" {% if gap.status == 'reviewed' %}selected{% endif %}>In Review</option>
@@ -62,8 +62,8 @@
           </tr>
         {% empty %}
           <tr>
-            <td colspan="5" class="px-4 py-8 text-center text-slate-500">
-              No knowledge gaps currently open! All queries have been answered or resolved.
+            <td colspan="5" class="px-4 py-12 text-center text-slate-500 font-mono">
+              No knowledge gaps currently open. All inquiries have verified source coverage.
             </td>
           </tr>
         {% endfor %}
@@ -71,4 +71,18 @@
     </table>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    if (typeof gsap !== 'undefined') {
+      gsap.from('.gap-row', {
+        opacity: 0,
+        y: 6,
+        duration: 0.3,
+        stagger: 0.03,
+        ease: 'power2.out'
+      });
+    }
+  });
+</script>
 {% endblock %}

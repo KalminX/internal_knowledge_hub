@@ -3,66 +3,105 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Secure Internal Knowledge Hub{% endblock %} | Enterprise RAG</title>
+  <title>{% block title %}Knowledge Hub{% endblock %} | Enterprise Operations</title>
+  
+  <!-- Inter & JetBrains Mono Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Menlo', 'monospace'],
+          },
           colors: {
-            brand: {
+            slate: {
+              850: '#111827',
+              900: '#0b0f17',
+              950: '#070a10',
+            },
+            accent: {
               50: '#eff6ff',
-              500: '#3b82f6',
-              600: '#2563eb',
-              700: '#1d4ed8',
+              500: '#2563eb',
+              600: '#1d4ed8',
+              700: '#1e40af',
             }
           }
         }
       }
     }
   </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- GSAP Animation Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/TextPlugin.min.js"></script>
+
   <style>
     body {
-      background-color: #0b0f19;
-      color: #f1f5f9;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #070a10;
+      color: #f3f4f6;
+      font-family: 'Inter', sans-serif;
     }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #0f172a; }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #0b0f17; }
+    ::-webkit-scrollbar-thumb { background: #1f293d; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    .lucide { stroke-width: 1.75px; }
+    .streaming-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 14px;
+      background-color: #3b82f6;
+      margin-left: 2px;
+      vertical-align: middle;
+      animation: blink 0.8s infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 flex h-screen overflow-hidden antialiased">
 
-  <!-- Left Global Sidebar -->
-  <aside class="w-72 bg-slate-900 border-r border-slate-800 flex flex-col h-screen shrink-0 select-none">
+  <!-- Left Enterprise Sidebar -->
+  <aside id="mainSidebar" class="w-64 bg-slate-900 border-r border-slate-800/80 flex flex-col h-screen shrink-0 select-none z-20">
+    
     <!-- Brand Header -->
     <div class="p-4 border-b border-slate-800 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 font-bold">
-          🔒
+        <div class="w-8 h-8 rounded-lg bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
         </div>
         <div>
-          <h1 class="font-semibold text-slate-100 text-sm tracking-tight leading-tight">Secure Knowledge Hub</h1>
-          <p className="text-xs text-blue-400 font-medium">Django RAG Engine</p>
+          <h1 class="font-semibold text-slate-100 text-xs tracking-tight leading-tight">Internal Knowledge Hub</h1>
+          <p class="text-[10px] text-slate-400 font-mono">Enterprise Operations</p>
         </div>
       </div>
     </div>
 
     <!-- Active Persona Switcher -->
-    <div class="p-3 border-b border-slate-800/80 bg-slate-950/40">
-      <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center justify-between">
-        <span>Active Test Persona</span>
-        <span class="text-[10px] text-emerald-400 font-mono">RBAC Live</span>
-      </label>
+    <div class="p-3 border-b border-slate-800/80 bg-slate-950/50">
+      <div class="flex items-center justify-between mb-1.5">
+        <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Security Persona</span>
+        <span class="text-[9px] text-emerald-400 font-mono bg-emerald-950/60 border border-emerald-800/50 px-1.5 py-0.5 rounded">RBAC Enforced</span>
+      </div>
       <form action="{% url 'switch_user' %}" method="POST" id="personaForm">
         {% csrf_token %}
         <select
           name="user_id"
           onchange="document.getElementById('personaForm').submit()"
-          class="w-full bg-slate-900 border border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-slate-200 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500"
+          class="w-full bg-slate-900 border border-slate-700/80 rounded-md px-2.5 py-1.5 text-xs text-slate-200 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
         >
           {% for du in demo_users %}
             <option value="{{ du.id }}" {% if du.id == current_user.id %}selected{% endif %}>
@@ -71,114 +110,132 @@
           {% endfor %}
         </select>
       </form>
-      <div class="mt-1.5 flex items-center justify-between text-[11px] text-slate-400">
-        <span>🏢 {{ current_org.name }}</span>
-        <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-300 uppercase border border-slate-700">
+      <div class="mt-2 flex items-center justify-between text-[11px] text-slate-400">
+        <span class="flex items-center gap-1 truncate text-slate-400">
+          <i data-lucide="building-2" class="w-3 h-3 text-slate-400"></i>
+          <span class="truncate">{{ current_org.name }}</span>
+        </span>
+        <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold bg-slate-800 text-slate-300 uppercase border border-slate-700">
           {{ current_role }}
         </span>
       </div>
     </div>
 
     <!-- Navigation Links -->
-    <nav class="flex-1 overflow-y-auto p-3 space-y-1 text-xs">
-      <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-2 py-1">
+    <nav class="flex-1 overflow-y-auto p-3 space-y-1 text-xs" id="navLinks">
+      <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider px-2 py-1">
         Knowledge Workspace
       </div>
 
       <a
         href="{% url 'chat' %}"
-        class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_tab == 'chat' %}bg-blue-600 text-white shadow-sm{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}"
+        class="nav-item flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium transition-all {% if active_tab == 'chat' %}bg-blue-600 text-white shadow-sm shadow-blue-500/20{% else %}text-slate-400 hover:bg-slate-800/80 hover:text-slate-200{% endif %}"
       >
-        <span>💬</span>
+        <i data-lucide="message-square" class="w-4 h-4"></i>
         <span>Knowledge Assistant</span>
       </a>
 
       <a
         href="{% url 'documents' %}"
-        class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_tab == 'documents' %}bg-blue-600 text-white shadow-sm{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}"
+        class="nav-item flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium transition-all {% if active_tab == 'documents' %}bg-blue-600 text-white shadow-sm shadow-blue-500/20{% else %}text-slate-400 hover:bg-slate-800/80 hover:text-slate-200{% endif %}"
       >
-        <span>📁</span>
+        <i data-lucide="folder-kanban" class="w-4 h-4"></i>
         <span>Document Library</span>
       </a>
 
       <a
         href="{% url 'integrations' %}"
-        class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_tab == 'integrations' %}bg-blue-600 text-white shadow-sm{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}"
+        class="nav-item flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium transition-all {% if active_tab == 'integrations' %}bg-blue-600 text-white shadow-sm shadow-blue-500/20{% else %}text-slate-400 hover:bg-slate-800/80 hover:text-slate-200{% endif %}"
       >
-        <span>🔌</span>
+        <i data-lucide="network" class="w-4 h-4"></i>
         <span>Cloud Connectors</span>
       </a>
 
       <!-- Administration Section -->
-      <div class="pt-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider px-2 py-1 flex items-center justify-between">
+      <div class="pt-4 text-[10px] font-semibold text-slate-500 uppercase tracking-wider px-2 py-1 flex items-center justify-between">
         <span>Administration</span>
-        {% if not is_admin %}<span class="text-[9px] text-amber-500/80 font-normal">Admin Only</span>{% endif %}
+        {% if not is_admin %}<span class="text-[9px] text-slate-500 font-mono">Restricted</span>{% endif %}
       </div>
 
       {% if is_admin %}
         <a
           href="{% url 'members' %}"
-          class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_tab == 'members' %}bg-blue-600 text-white shadow-sm{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}"
+          class="nav-item flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium transition-all {% if active_tab == 'members' %}bg-blue-600 text-white shadow-sm shadow-blue-500/20{% else %}text-slate-400 hover:bg-slate-800/80 hover:text-slate-200{% endif %}"
         >
-          <span>👥</span>
+          <i data-lucide="users" class="w-4 h-4"></i>
           <span>Members & Roles</span>
         </a>
 
         <a
           href="{% url 'analytics' %}"
-          class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_tab == 'analytics' %}bg-blue-600 text-white shadow-sm{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}"
+          class="nav-item flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium transition-all {% if active_tab == 'analytics' %}bg-blue-600 text-white shadow-sm shadow-blue-500/20{% else %}text-slate-400 hover:bg-slate-800/80 hover:text-slate-200{% endif %}"
         >
-          <span>📊</span>
+          <i data-lucide="line-chart" class="w-4 h-4"></i>
           <span>Usage Analytics</span>
         </a>
 
         <a
           href="{% url 'gaps' %}"
-          class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_tab == 'gaps' %}bg-blue-600 text-white shadow-sm{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}"
+          class="nav-item flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium transition-all {% if active_tab == 'gaps' %}bg-blue-600 text-white shadow-sm shadow-blue-500/20{% else %}text-slate-400 hover:bg-slate-800/80 hover:text-slate-200{% endif %}"
         >
-          <span>⚠️</span>
+          <i data-lucide="help-circle" class="w-4 h-4"></i>
           <span>Knowledge Gaps</span>
         </a>
 
         <a
           href="{% url 'audit' %}"
-          class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_tab == 'audit' %}bg-blue-600 text-white shadow-sm{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}"
+          class="nav-item flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium transition-all {% if active_tab == 'audit' %}bg-blue-600 text-white shadow-sm shadow-blue-500/20{% else %}text-slate-400 hover:bg-slate-800/80 hover:text-slate-200{% endif %}"
         >
-          <span>🛡️</span>
-          <span>Security Audit Logs</span>
+          <i data-lucide="file-check-2" class="w-4 h-4"></i>
+          <span>Audit Stream</span>
         </a>
       {% else %}
-        <div class="space-y-1 opacity-40 cursor-not-allowed">
-          <div class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500">
-            <span>👥</span><span>Members & Roles</span>
+        <div class="space-y-0.5 opacity-35 cursor-not-allowed">
+          <div class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-500">
+            <i data-lucide="users" class="w-4 h-4"></i><span>Members & Roles</span>
           </div>
-          <div class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500">
-            <span>📊</span><span>Usage Analytics</span>
+          <div class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-500">
+            <i data-lucide="line-chart" class="w-4 h-4"></i><span>Usage Analytics</span>
           </div>
-          <div class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500">
-            <span>⚠️</span><span>Knowledge Gaps</span>
+          <div class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-500">
+            <i data-lucide="help-circle" class="w-4 h-4"></i><span>Knowledge Gaps</span>
           </div>
-          <div class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500">
-            <span>🛡️</span><span>Security Audit Logs</span>
+          <div class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-500">
+            <i data-lucide="file-check-2" class="w-4 h-4"></i><span>Audit Stream</span>
           </div>
         </div>
       {% endif %}
     </nav>
 
     <!-- Footer Profile Info -->
-    <div class="p-3 border-t border-slate-800 text-[11px] text-slate-400 bg-slate-950/60">
+    <div class="p-3 border-t border-slate-800/80 text-[11px] text-slate-400 bg-slate-950/70">
       <div class="flex items-center justify-between">
-        <span class="font-semibold text-slate-300">{{ current_user.full_name }}</span>
-        <span class="text-[10px] text-slate-400">{{ current_department }}</span>
+        <span class="font-medium text-slate-200 truncate">{{ current_user.full_name }}</span>
+        <span class="text-[10px] text-slate-400 font-mono">{{ current_department }}</span>
       </div>
-      <div class="text-[10px] text-slate-500 truncate mt-0.5">{{ current_user.email }}</div>
+      <div class="text-[10px] text-slate-400 truncate font-mono mt-0.5">{{ current_user.email }}</div>
     </div>
   </aside>
 
   <!-- Main Content Area -->
-  <main class="flex-1 flex flex-col h-screen overflow-hidden">
+  <main class="flex-1 flex flex-col h-screen overflow-hidden bg-slate-950">
     {% block content %}{% endblock %}
   </main>
 
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      // Smooth initial sidebar load transition
+      if (typeof gsap !== 'undefined') {
+        gsap.from('.nav-item', {
+          opacity: 0,
+          x: -6,
+          duration: 0.3,
+          stagger: 0.04,
+          ease: 'power2.out'
+        });
+      }
+    });
+  </script>
 </body>
 </html>

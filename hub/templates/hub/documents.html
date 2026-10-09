@@ -5,23 +5,23 @@
 {% block content %}
 <div class="flex-1 flex flex-col h-screen overflow-hidden bg-slate-950 text-slate-100 p-8">
   <!-- Header -->
-  <div class="flex items-center justify-between pb-6 border-b border-slate-800">
+  <div class="flex items-center justify-between pb-6 border-b border-slate-800/80">
     <div>
-      <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-        <span>📁</span>
-        <span>Document Library & Ingestion Lifecycle</span>
+      <h1 class="text-lg font-semibold tracking-tight text-white flex items-center gap-2">
+        <i data-lucide="folder-kanban" class="w-5 h-5 text-blue-400"></i>
+        <span>Document Index & Lifecycle Management</span>
       </h1>
       <p class="text-xs text-slate-400 mt-1">
-        Manage enterprise documentation, indexing status, versioning, and access scope boundaries.
+        Manage enterprise knowledge files, versioning status, vector chunk indexing, and tenant access boundaries.
       </p>
     </div>
 
     {% if can_upload %}
       <button
-        onclick="document.getElementById('uploadModal').classList.remove('hidden')"
-        class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold shadow-md shadow-blue-500/10 transition-colors"
+        onclick="openUploadModal()"
+        class="flex items-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium shadow-sm transition-all"
       >
-        <span>⬆️</span>
+        <i data-lucide="upload" class="w-4 h-4"></i>
         <span>Upload Document</span>
       </button>
     {% endif %}
@@ -31,19 +31,20 @@
   <div class="mt-6 flex flex-wrap items-center gap-3">
     <form method="GET" class="flex flex-wrap items-center gap-3 flex-1">
       <div class="relative flex-1 min-w-[240px]">
+        <i data-lucide="search" class="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5"></i>
         <input
           type="text"
           name="q"
           value="{{ search_query }}"
-          placeholder="Search documents by title or category..."
-          class="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          placeholder="Filter documents by title, policy category..."
+          class="w-full bg-slate-900 border border-slate-800 rounded-lg pl-9 pr-3.5 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 font-mono"
         />
       </div>
 
       <select
         name="category"
         onchange="this.form.submit()"
-        class="bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-300 focus:outline-none"
+        class="bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-blue-500"
       >
         <option value="all">All Categories</option>
         {% for c in categories %}
@@ -54,7 +55,7 @@
       <select
         name="status"
         onchange="this.form.submit()"
-        class="bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-300 focus:outline-none"
+        class="bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-blue-500"
       >
         <option value="all">All Statuses</option>
         <option value="ready" {% if selected_status == 'ready' %}selected{% endif %}>Ready (Indexed)</option>
@@ -66,9 +67,9 @@
   </div>
 
   <!-- Documents Table -->
-  <div class="mt-6 flex-1 overflow-y-auto border border-slate-800 rounded-xl bg-slate-900/60">
+  <div class="mt-6 flex-1 overflow-y-auto border border-slate-800/80 rounded-xl bg-slate-900/40">
     <table class="w-full text-left text-xs">
-      <thead class="bg-slate-900 border-b border-slate-800 text-slate-400 uppercase tracking-wider text-[10px] font-semibold sticky top-0">
+      <thead class="bg-slate-900/90 border-b border-slate-800 text-slate-400 uppercase tracking-wider text-[10px] font-semibold sticky top-0 backdrop-blur-sm">
         <tr>
           <th class="px-4 py-3">Document Title</th>
           <th class="px-4 py-3">Category</th>
@@ -78,29 +79,30 @@
           <th class="px-4 py-3 text-right">Actions</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-slate-800/60">
+      <tbody class="divide-y divide-slate-800/60" id="docsTbody">
         {% for doc in documents %}
-          <tr class="hover:bg-slate-800/40 transition-colors">
+          <tr class="doc-row hover:bg-slate-850/50 transition-colors">
             <td class="px-4 py-3.5 font-medium text-slate-200">
-              <div class="flex items-center gap-2">
-                <span class="text-blue-400">📄</span>
-                <span>{{ doc.title }}</span>
+              <div class="flex items-center gap-2.5">
+                <i data-lucide="file-text" class="w-4 h-4 text-blue-400 shrink-0"></i>
+                <span class="truncate">{{ doc.title }}</span>
               </div>
             </td>
-            <td class="px-4 py-3.5 text-slate-400">{{ doc.category }}</td>
+            <td class="px-4 py-3.5 text-slate-400 font-mono text-[11px]">{{ doc.category }}</td>
             <td class="px-4 py-3.5">
               <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-300 border border-slate-700">
                 v{{ doc.current_version_number }}
               </span>
             </td>
             <td class="px-4 py-3.5">
-              <span class="px-2 py-0.5 rounded text-[10px] font-medium border flex items-center gap-1 w-fit {% if doc.access_scope == 'organization' %}bg-blue-950 text-blue-400 border-blue-800{% else %}bg-amber-950 text-amber-400 border-amber-800{% endif %}">
-                <span>🛡️</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-mono border flex items-center gap-1.5 w-fit {% if doc.access_scope == 'organization' %}bg-blue-950/60 text-blue-400 border-blue-800/50{% else %}bg-amber-950/60 text-amber-400 border-amber-800/50{% endif %}">
+                <i data-lucide="shield" class="w-3 h-3"></i>
                 <span class="capitalize">{{ doc.access_scope }}</span>
               </span>
             </td>
             <td class="px-4 py-3.5">
-              <span class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase flex items-center gap-1 w-fit {% if doc.status == 'ready' %}bg-emerald-950 text-emerald-400 border border-emerald-800{% elif doc.status == 'retired' %}bg-slate-800 text-slate-400 border border-slate-700{% else %}bg-rose-950 text-rose-400 border border-rose-800{% endif %}">
+              <span class="px-2 py-0.5 rounded text-[10px] font-mono uppercase flex items-center gap-1.5 w-fit {% if doc.status == 'ready' %}bg-emerald-950/60 text-emerald-400 border border-emerald-800/50{% elif doc.status == 'retired' %}bg-slate-800 text-slate-400 border border-slate-700{% else %}bg-rose-950/60 text-rose-400 border border-rose-800/50{% endif %}">
+                <span class="w-1.5 h-1.5 rounded-full {% if doc.status == 'ready' %}bg-emerald-400{% elif doc.status == 'retired' %}bg-slate-400{% else %}bg-rose-400{% endif %}"></span>
                 <span>{{ doc.status }}</span>
               </span>
             </td>
@@ -109,7 +111,7 @@
                 <button
                   type="button"
                   onclick="openRulesModal('{{ doc.id }}', '{{ doc.title|escapejs }}', '{{ doc.access_scope }}')"
-                  class="px-2.5 py-1 text-[11px] rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
+                  class="px-2.5 py-1 text-[11px] rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono transition-colors"
                 >
                   Permissions
                 </button>
@@ -117,7 +119,7 @@
                   {% csrf_token %}
                   <button
                     type="submit"
-                    class="px-2.5 py-1 text-[11px] rounded font-medium {% if doc.status == 'retired' %}bg-emerald-800 hover:bg-emerald-700 text-white{% else %}bg-rose-950 hover:bg-rose-900 text-rose-300 border border-rose-800{% endif %}"
+                    class="px-2.5 py-1 text-[11px] rounded font-mono transition-colors {% if doc.status == 'retired' %}bg-emerald-900/60 hover:bg-emerald-800 text-emerald-300 border border-emerald-700/60{% else %}bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/60{% endif %}"
                   >
                     {% if doc.status == 'retired' %}Reactivate{% else %}Retire{% endif %}
                   </button>
@@ -127,8 +129,8 @@
           </tr>
         {% empty %}
           <tr>
-            <td colspan="6" class="px-4 py-8 text-center text-slate-500">
-              No documents found.
+            <td colspan="6" class="px-4 py-12 text-center text-slate-500 font-mono">
+              No matching documents in catalog.
             </td>
           </tr>
         {% endfor %}
@@ -138,81 +140,128 @@
 </div>
 
 <!-- Upload Modal -->
-<div id="uploadModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-  <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-    <h2 class="text-base font-bold text-white flex items-center gap-2">
-      <span>⬆️</span>
-      <span>Upload & Index Document</span>
-    </h2>
+<div id="uploadModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+  <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-lg w-full p-6 shadow-2xl space-y-4" id="uploadModalCard">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+      <h2 class="text-sm font-semibold text-white flex items-center gap-2">
+        <i data-lucide="upload-cloud" class="w-4 h-4 text-blue-400"></i>
+        <span>Ingest & Index Knowledge Document</span>
+      </h2>
+      <button type="button" onclick="closeUploadModal()" class="text-slate-500 hover:text-slate-300">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
 
     <form action="{% url 'document_upload' %}" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs">
       {% csrf_token %}
       <div>
-        <label class="block font-medium text-slate-300 mb-1">Document File (.pdf, .docx, .txt, .md)</label>
-        <input type="file" name="file" accept=".pdf,.docx,.txt,.md" required class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-300" />
+        <label class="block font-medium text-slate-300 mb-1">Source File (.pdf, .docx, .txt, .md)</label>
+        <input type="file" name="file" accept=".pdf,.docx,.txt,.md" required class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-300 focus:outline-none focus:border-blue-500" />
       </div>
 
       <div>
         <label class="block font-medium text-slate-300 mb-1">Document Title (Optional)</label>
-        <input type="text" name="title" placeholder="e.g. Incident Response SOP" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-100" />
+        <input type="text" name="title" placeholder="e.g. Incident Response & Severity Matrix" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-blue-500" />
       </div>
 
       <div class="grid grid-cols-2 gap-3">
         <div>
           <label class="block font-medium text-slate-300 mb-1">Category</label>
-          <input type="text" name="category" value="General" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-100" />
+          <input type="text" name="category" value="Operations" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-blue-500" />
         </div>
         <div>
           <label class="block font-medium text-slate-300 mb-1">Access Scope</label>
-          <select name="access_scope" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-100">
-            <option value="organization">Organization-wide</option>
-            <option value="restricted">Restricted (Admins)</option>
+          <select name="access_scope" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-blue-500">
+            <option value="organization">Organization-wide (All Members)</option>
+            <option value="restricted">Restricted (Admins & Owners)</option>
           </select>
         </div>
       </div>
 
       <div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-800">
-        <button type="button" onclick="document.getElementById('uploadModal').classList.add('hidden')" class="px-4 py-2 text-slate-400 hover:text-slate-200">Cancel</button>
-        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold">Start Ingestion</button>
+        <button type="button" onclick="closeUploadModal()" class="px-3.5 py-2 text-slate-400 hover:text-slate-200">Cancel</button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium">Ingest Document</button>
       </div>
     </form>
   </div>
 </div>
 
 <!-- Rules Modal -->
-<div id="rulesModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-  <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-    <h2 class="text-base font-bold text-white flex items-center gap-2">
-      <span>🔒</span>
-      <span>Document Permissions</span>
-    </h2>
-    <p class="text-xs text-slate-400" id="rulesDocTitle"></p>
+<div id="rulesModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+  <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 shadow-2xl space-y-4" id="rulesModalCard">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+      <h2 class="text-sm font-semibold text-white flex items-center gap-2">
+        <i data-lucide="shield" class="w-4 h-4 text-blue-400"></i>
+        <span>Document Access Boundary</span>
+      </h2>
+      <button type="button" onclick="closeRulesModal()" class="text-slate-500 hover:text-slate-300">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+    
+    <p class="text-xs text-slate-400 font-mono" id="rulesDocTitle"></p>
 
     <form id="rulesForm" method="POST" class="space-y-4 text-xs">
       {% csrf_token %}
       <div>
-        <label class="block font-medium text-slate-300 mb-1">Access Scope</label>
-        <select name="access_scope" id="rulesScopeSelect" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-100">
-          <option value="organization">Organization-wide (All Members)</option>
-          <option value="restricted">Restricted (Admins & Owners)</option>
+        <label class="block font-medium text-slate-300 mb-1">Authorization Scope</label>
+        <select name="access_scope" id="rulesScopeSelect" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-blue-500">
+          <option value="organization">Organization-wide (Accessible by all verified employees)</option>
+          <option value="restricted">Restricted (Restricted to Admins & Owners)</option>
         </select>
-        <p class="text-[11px] text-slate-500 mt-1">Restricted documents will be strictly excluded from search for regular members.</p>
+        <p class="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+          Restricted documents are pruned at the database retrieval level before vector similarity queries are executed.
+        </p>
       </div>
 
       <div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-800">
-        <button type="button" onclick="document.getElementById('rulesModal').classList.add('hidden')" class="px-4 py-2 text-slate-400 hover:text-slate-200">Cancel</button>
-        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold">Save Permissions</button>
+        <button type="button" onclick="closeRulesModal()" class="px-3.5 py-2 text-slate-400 hover:text-slate-200">Cancel</button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium">Save Scope</button>
       </div>
     </form>
   </div>
 </div>
 
 <script>
+  function openUploadModal() {
+    const modal = document.getElementById('uploadModal');
+    modal.classList.remove('hidden');
+    lucide.createIcons();
+    if (typeof gsap !== 'undefined') {
+      gsap.fromTo('#uploadModalCard', { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.25, ease: 'power2.out' });
+    }
+  }
+
+  function closeUploadModal() {
+    document.getElementById('uploadModal').classList.add('hidden');
+  }
+
   function openRulesModal(docId, docTitle, currentScope) {
-    document.getElementById('rulesDocTitle').innerText = 'Configure boundary for: ' + docTitle;
+    document.getElementById('rulesDocTitle').innerText = 'Document: ' + docTitle;
     document.getElementById('rulesScopeSelect').value = currentScope;
     document.getElementById('rulesForm').action = '/documents/' + docId + '/rules/';
-    document.getElementById('rulesModal').classList.remove('hidden');
+    const modal = document.getElementById('rulesModal');
+    modal.classList.remove('hidden');
+    lucide.createIcons();
+    if (typeof gsap !== 'undefined') {
+      gsap.fromTo('#rulesModalCard', { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.25, ease: 'power2.out' });
+    }
   }
+
+  function closeRulesModal() {
+    document.getElementById('rulesModal').classList.add('hidden');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (typeof gsap !== 'undefined') {
+      gsap.from('.doc-row', {
+        opacity: 0,
+        y: 6,
+        duration: 0.3,
+        stagger: 0.03,
+        ease: 'power2.out'
+      });
+    }
+  });
 </script>
 {% endblock %}

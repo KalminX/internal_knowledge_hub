@@ -5,6 +5,7 @@ urlpatterns = [
     path('chat/', views.chat_view, name='chat'),
     path('chat/new/', views.new_chat_view, name='new_chat'),
     path('api/chat/send/', views.send_message_api, name='send_message_api'),
+    path('api/chat/stream/', views.send_message_stream_api, name='send_message_stream_api'),
     path('api/feedback/', views.feedback_api, name='feedback_api'),
     path('documents/', views.documents_view, name='documents'),
     path('documents/upload/', views.document_upload_view, name='document_upload'),

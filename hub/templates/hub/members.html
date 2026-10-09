@@ -4,9 +4,9 @@
 
 {% block content %}
 <div class="flex-1 flex flex-col h-screen overflow-hidden bg-slate-950 text-slate-100 p-8">
-  <div class="pb-6 border-b border-slate-800">
-    <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-      <span>👥</span>
+  <div class="pb-6 border-b border-slate-800/80">
+    <h1 class="text-lg font-semibold tracking-tight text-white flex items-center gap-2">
+      <i data-lucide="users" class="w-5 h-5 text-blue-400"></i>
       <span>Organization Members & Access Roles</span>
     </h1>
     <p class="text-xs text-slate-400 mt-1">
@@ -16,9 +16,10 @@
 
   <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 overflow-y-auto">
     <!-- Member Table -->
-    <div class="lg:col-span-2 border border-slate-800 rounded-xl bg-slate-900/60 overflow-hidden flex flex-col">
-      <div class="px-4 py-3 border-b border-slate-800 bg-slate-900 font-semibold text-xs text-slate-300">
-        Active Members in {{ current_org.name }} ({{ members.count }})
+    <div class="lg:col-span-2 border border-slate-800/80 rounded-xl bg-slate-900/40 overflow-hidden flex flex-col">
+      <div class="px-4 py-3 border-b border-slate-800 bg-slate-900/90 font-medium text-xs text-slate-300 flex items-center justify-between">
+        <span>Active Roster in {{ current_org.name }}</span>
+        <span class="text-[10px] font-mono text-slate-500">{{ members.count }} Members</span>
       </div>
       <div class="overflow-x-auto flex-1">
         <table class="w-full text-left text-xs">
@@ -30,16 +31,16 @@
               <th class="px-4 py-3 text-right">Adjust Access</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-800/60">
+          <tbody class="divide-y divide-slate-800/60" id="membersTbody">
             {% for mem in members %}
-              <tr class="hover:bg-slate-800/40 transition-colors">
+              <tr class="member-row hover:bg-slate-850/50 transition-colors">
                 <td class="px-4 py-3.5">
                   <div class="font-medium text-slate-200">{{ mem.user.full_name }}</div>
-                  <div class="text-[11px] text-slate-400">{{ mem.user.email }}</div>
+                  <div class="text-[11px] text-slate-500 font-mono">{{ mem.user.email }}</div>
                 </td>
-                <td class="px-4 py-3.5 text-slate-400">{{ mem.department|default:"General" }}</td>
+                <td class="px-4 py-3.5 text-slate-400 font-mono text-[11px]">{{ mem.department|default:"General" }}</td>
                 <td class="px-4 py-3.5">
-                  <span class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase bg-slate-800 border border-slate-700 text-slate-300">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase bg-slate-800 border border-slate-700 text-slate-300">
                     {{ mem.role }}
                   </span>
                 </td>
@@ -50,7 +51,7 @@
                     <select
                       name="role"
                       onchange="this.form.submit()"
-                      class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none"
+                      class="bg-slate-950 border border-slate-700 rounded px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-blue-500 font-mono"
                     >
                       <option value="owner" {% if mem.role == 'owner' %}selected{% endif %}>Owner</option>
                       <option value="admin" {% if mem.role == 'admin' %}selected{% endif %}>Admin</option>
@@ -67,30 +68,44 @@
     </div>
 
     <!-- Role Matrix Card -->
-    <div class="border border-slate-800 rounded-xl bg-slate-900/60 p-5 space-y-4 h-fit text-xs">
+    <div class="border border-slate-800/80 rounded-xl bg-slate-900/40 p-5 space-y-4 h-fit text-xs">
       <h3 class="font-semibold text-slate-200 flex items-center gap-2">
-        <span>🛡️</span>
-        <span>Role Permissions Matrix</span>
+        <i data-lucide="shield-alert" class="w-4 h-4 text-blue-400"></i>
+        <span>Role Permissions Hierarchy</span>
       </h3>
-      <div class="space-y-3 text-[11px]">
-        <div class="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800">
-          <span class="font-bold text-blue-400 uppercase">Owner</span>
-          <p class="text-slate-400 mt-0.5">Full organization control, role promotion, security auditing, and workspace deletion.</p>
+      <div class="space-y-2.5 text-[11px]">
+        <div class="p-3 rounded-lg bg-slate-950/80 border border-slate-800">
+          <span class="font-bold text-blue-400 font-mono uppercase">Owner</span>
+          <p class="text-slate-400 mt-1 leading-relaxed">Full organization governance, security audits, role promotions, and tenant settings.</p>
         </div>
-        <div class="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800">
-          <span class="font-bold text-emerald-400 uppercase">Admin</span>
-          <p class="text-slate-400 mt-0.5">Upload/retire documents, edit access scopes, manage members, view analytics & knowledge gaps.</p>
+        <div class="p-3 rounded-lg bg-slate-950/80 border border-slate-800">
+          <span class="font-bold text-emerald-400 font-mono uppercase">Admin</span>
+          <p class="text-slate-400 mt-1 leading-relaxed">Upload/retire documents, edit access boundaries, triage knowledge gaps & analytics.</p>
         </div>
-        <div class="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800">
-          <span class="font-bold text-amber-400 uppercase">Editor</span>
-          <p class="text-slate-400 mt-0.5">Upload and update knowledge documents, view indexing pipelines and draft statuses.</p>
+        <div class="p-3 rounded-lg bg-slate-950/80 border border-slate-800">
+          <span class="font-bold text-amber-400 font-mono uppercase">Editor</span>
+          <p class="text-slate-400 mt-1 leading-relaxed">Upload, maintain, and version authorized organizational documentation.</p>
         </div>
-        <div class="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800">
-          <span class="font-bold text-slate-400 uppercase">Member</span>
-          <p class="text-slate-400 mt-0.5">Ask natural-language questions and search authorized organization-wide knowledge documents.</p>
+        <div class="p-3 rounded-lg bg-slate-950/80 border border-slate-800">
+          <span class="font-bold text-slate-400 font-mono uppercase">Member</span>
+          <p class="text-slate-400 mt-1 leading-relaxed">Perform grounded natural-language queries against organization-wide documents.</p>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    if (typeof gsap !== 'undefined') {
+      gsap.from('.member-row', {
+        opacity: 0,
+        y: 6,
+        duration: 0.3,
+        stagger: 0.03,
+        ease: 'power2.out'
+      });
+    }
+  });
+</script>
 {% endblock %}

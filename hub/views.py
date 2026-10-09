@@ -103,6 +103,44 @@ def send_message_api(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
+@require_POST
+def send_message_stream_api(request):
+    from django.http import StreamingHttpResponse
+    from hub.services.rag import stream_rag_pipeline
+
+    user, org, membership, role = get_current_user_and_org(request)
+    if not user or not org:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+
+    data = json.loads(request.body.decode('utf-8'))
+    question = data.get('question', '').strip()
+    conv_id = data.get('conversation_id')
+
+    if not question:
+        return JsonResponse({'error': 'Question is required'}, status=400)
+
+    if not conv_id:
+        new_conv = Conversation.objects.create(
+            organization=org,
+            user=user,
+            title=question[:45] + ("..." if len(question) > 45 else "")
+        )
+        conv_id = str(new_conv.id)
+
+    response = StreamingHttpResponse(
+        stream_rag_pipeline(
+            org_id=str(org.id),
+            user_id=str(user.id),
+            conversation_id=conv_id,
+            question=question
+        ),
+        content_type='text/event-stream'
+    )
+    response['Cache-Control'] = 'no-cache'
+    response['X-Accel-Buffering'] = 'no'
+    return response
+
+
 def new_chat_view(request):
     user, org, membership, role = get_current_user_and_org(request)
     if user and org:
