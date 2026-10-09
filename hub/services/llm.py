@@ -43,7 +43,7 @@ def generate_grounded_answer(
     # 1. Google Gemini API
     gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
     if gemini_key and gemini_key.strip():
-        gemini_model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+        gemini_model = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
         try:
             from google import genai
             from google.genai import types
