@@ -1,13 +1,12 @@
-# Secure Internal Knowledge Hub (Enterprise RAG MVP)
+# Secure Internal Knowledge Hub (Django + Templates Enterprise RAG MVP)
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue.svg)](https://www.typescriptlang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-15.5-black.svg)](https://nextjs.org/)
+[![Python](https://img.shields.io/badge/Python-3.13-blue.svg)](https://www.python.org/)
+[![Django](https://img.shields.io/badge/Django-5.2-green.svg)](https://www.djangoproject.com/)
 [![Anthropic Claude](https://img.shields.io/badge/Claude-3.5%20Sonnet-purple.svg)](https://www.anthropic.com/)
-[![PostgreSQL pgvector](https://img.shields.io/badge/pgvector-1536%20dim-336791.svg)](https://github.com/pgvector/pgvector)
-[![Vitest](https://img.shields.io/badge/Tests-25%20Passing-brightgreen.svg)](https://vitest.dev/)
-[![Security RBAC](https://img.shields.io/badge/Tenant%20Isolation-Row%20Level%20Security-emerald.svg)](./SECURITY.md)
+[![Pytest](https://img.shields.io/badge/Pytest-18%20Passing-brightgreen.svg)](https://pytest.org/)
+[![Security RBAC](https://img.shields.io/badge/Tenant%20Isolation-Server%20Enforced-emerald.svg)](./SECURITY.md)
 
-A private, multi-tenant AI knowledge assistant engineered for company Standard Operating Procedures (SOPs), employee handbooks, engineering incident protocols, compliance policies, and operational documentation.
+A private, multi-tenant AI knowledge assistant engineered with **Python, Django, and Django Templates** for company Standard Operating Procedures (SOPs), employee handbooks, engineering incident protocols, compliance policies, and operational documentation.
 
 Built with a **security-first retrieval architecture**, strictly grounded Anthropic Claude 3.5 generation, server-side validated source citations, explicit insufficient-evidence abstention, lifecycle document management, and administrative knowledge-gap observability.
 
@@ -28,7 +27,7 @@ Built with a **security-first retrieval architecture**, strictly grounded Anthro
    - Abstentions automatically feed into the **Knowledge Gaps** workflow for administrative review.
 
 4. **Multi-Format Ingestion Pipeline**
-   - Supports **PDF**, **DOCX**, **Markdown**, and **TXT** files.
+   - Supports **PDF** (`pypdf`), **DOCX** (`python-docx`), **Markdown**, and **TXT** files.
    - Token-aware semantic chunker with heading path preservation (`#`, `##`, `###`), page number tracking, and sliding overlap.
 
 5. **Document Lifecycle & Stale Chunk Invalidation**
@@ -41,7 +40,7 @@ Built with a **security-first retrieval architecture**, strictly grounded Anthro
 
 7. **Dual-Mode Zero-Config Engine**
    - **Local / Demo Mode**: Runs instantly out of the box with zero external dependencies (pure in-memory vector cosine math and deterministic embedding projection).
-   - **Production Mode**: Seamlessly connects to **PostgreSQL + pgvector** on Supabase, **Anthropic Claude 3.5 Sonnet**, and **OpenAI/Voyage** embeddings via standard `.env` variables.
+   - **Production Mode**: Seamlessly connects to **PostgreSQL + pgvector**, **Anthropic Claude 3.5 Sonnet**, and **OpenAI/Voyage** embeddings via standard environment variables.
 
 ---
 
@@ -49,90 +48,87 @@ Built with a **security-first retrieval architecture**, strictly grounded Anthro
 
 ```mermaid
 flowchart TD
-    subgraph Client["Client Tier"]
-        UI["Next.js Web Client\n(Chat, Docs, Admin, Analytics)"]
+    subgraph Client["Django Templates UI"]
+        UI["Knowledge Assistant Chat / Docs / Admin / Analytics / Gaps"]
     end
 
-    subgraph AuthBoundary["Security & Identity Boundary"]
-        RBAC["RBAC & Session Resolver\n(Owner / Admin / Editor / Member)"]
-        Audit["Audit Logger & Telemetry"]
+    subgraph SecurityGateway["Security & Identity Boundary"]
+        Session["Session Context & Persona Switcher"]
+        RBAC["Server-Side RBAC (Owner / Admin / Editor / Member)"]
+        Audit["Security Audit Stream"]
     end
 
-    subgraph Ingestion["Ingestion Engine"]
-        Val["File Validation & Storage (SHA256)"]
-        Extract["Text Extraction (PDF / DOCX / MD)"]
-        Chunker["Token-Aware Chunker (Heading & Page Aware)"]
-        Embedder["Dedicated Embedding Provider (1536-dim)"]
+    subgraph IngestionEngine["Document Ingestion Engine"]
+        Storage["Private Storage (SHA-256 Hashing)"]
+        Parser["Extractors (PDF: pypdf / DOCX: python-docx / MD / TXT)"]
+        Chunker["Token-Aware Chunker (450t size, 60t overlap)"]
+        Embedder["Embedding Provider (1536-dim)"]
     end
 
-    subgraph RAG["Retrieval & Generation Engine"]
-        Retriever["Authorized Vector Search (pgvector)\n[Org + Doc Status + Access Rules]"]
-        Context["Bounded Evidence Context Assembly"]
-        LLM["Anthropic Claude 3.5 Sonnet"]
-        Citations["Server Citation Validation"]
+    subgraph RetrievalGeneration["Retrieval & Grounding Engine"]
+        Retriever["Permission-Aware Vector Search Boundary"]
+        Context["Evidence Context Assembler"]
+        Claude["Anthropic Claude 3.5 Sonnet Engine"]
+        CitationValidator["Citation Verification & Formatter"]
     end
 
-    subgraph StorageTier["Data & Vector Tier"]
-        PG["PostgreSQL (RLS Tenant Isolated)"]
-        VectorDB["pgvector Index (1536-dim IVFFlat)"]
-        PrivateBucket["Private Document Storage"]
+    subgraph StorageTier["Persistence Layer"]
+        DB["Django ORM (SQLite / PostgreSQL)"]
+        VectorData["JSON Vector Embeddings / pgvector"]
+        PrivateBucket["Private File Storage (SHA-256)"]
     end
 
-    UI -->|Session Cookie| RBAC
-    RBAC --> Ingestion
-    RBAC --> RAG
-    Ingestion --> Val --> Extract --> Chunker --> Embedder --> VectorDB
-    Ingestion --> StorageTier
-    RAG --> Retriever --> VectorDB
-    Retriever --> Context --> LLM --> Citations --> UI
-    RAG --> Audit
+    UI --> Session --> RBAC
+    RBAC --> IngestionEngine
+    RBAC --> RetrievalGeneration
+    IngestionEngine --> Storage --> Parser --> Chunker --> Embedder --> VectorData
+    IngestionEngine --> DB
+    RetrievalGeneration --> Retriever --> VectorData
+    Retriever --> Context --> Claude --> CitationValidator --> UI
+    RetrievalGeneration --> Audit
 ```
 
 ---
 
 ## 🚀 Quickstart & Setup
 
-### Prerequisites
-- Node.js 18+ (tested on Node.js 24)
-- npm or pnpm
-
-### 1. Clone & Install
+### 1. Set Up Virtual Environment & Dependencies
 ```bash
-git clone https://github.com/your-org/secure-internal-knowledge-hub.git
-cd secure-internal-knowledge-hub
-npm install
+# Create virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
 ```
 
-### 2. Environment Configuration
-By default, the application runs in local zero-config mode with synthetic SOP documents. To enable cloud services, copy `.env.example` to `.env.local`:
+### 2. Run Migrations & Seed Demo Data
 ```bash
-cp .env.example .env.local
+# Apply migrations
+python manage.py migrate
+
+# Seed demo organization, users, and realistic SOPs
+python manage.py seed_data
 ```
 
-### 3. Seed Demo Environment
-Seed the database with realistic synthetic company documentation (PTO policy, engineering SEV-1 SOP, customer support SLA, password standards, executive compensation):
+### 3. Run Development Server
 ```bash
-npm run seed
+python manage.py runserver 8000
 ```
-
-### 4. Start Development Server
-```bash
-npm run dev
-```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser.
 
 ---
 
 ## 🧪 Testing & Evaluation
 
-Execute the complete automated test suite (25 tests covering unit logic, security isolation, and RAG evaluation):
+Execute the automated test suite (18 pytest tests covering unit logic, security isolation, RAG evaluation benchmarks, and full lifecycle integration):
 
 ```bash
-# Run all tests
-npm test
+# Run all tests with pytest
+./.venv/bin/pytest
 
-# Run RAG evaluation suite specifically
-npm run eval
+# Run with verbose output
+./.venv/bin/pytest -v
 ```
 
 ### Evaluation Benchmark Summary
@@ -155,64 +151,49 @@ npm run eval
 
 ```
 .
-├── src/
-│   ├── app/                    # Next.js App Router (pages & API routes)
-│   │   ├── api/
-│   │   │   ├── admin/          # Analytics, Members, Gaps, Audit routes
-│   │   │   ├── auth/           # Session management & role switcher
-│   │   │   ├── chat/           # RAG query execution endpoint
-│   │   │   ├── conversations/  # Conversation persistence
-│   │   │   ├── documents/      # Document upload & lifecycle routes
-│   │   │   └── feedback/       # Feedback & gap reporting
-│   │   ├── globals.css         # Tailwind enterprise dark theme
-│   │   ├── layout.tsx          # Root layout
-│   │   └── page.tsx            # Single-page shell
-│   ├── components/             # React UI Components
-│   │   ├── AdminAnalytics.tsx  # KPI charts and telemetry
-│   │   ├── AdminMembers.tsx    # Role management
-│   │   ├── AuditLogView.tsx    # Security audit stream
-│   │   ├── ChatInterface.tsx   # Grounded chat with citation preview
-│   │   ├── DocumentLibrary.tsx # Ingestion lifecycle table & upload
-│   │   ├── IntegrationsView.tsx# Google Drive & SharePoint specs
-│   │   ├── KnowledgeGaps.tsx   # Unanswered questions workflow
-│   │   └── Sidebar.tsx         # Navigation & active persona switcher
-│   ├── data/                   # Synthetic company documents
-│   ├── lib/
-│   │   ├── auth/               # RBAC role hierarchy & session handling
-│   │   ├── chunking/           # Token-aware semantic chunker
-│   │   ├── citations/          # Server-side citation validation
-│   │   ├── db/                 # Memory & Supabase store adapters
-│   │   ├── embeddings/         # Deterministic mock & OpenAI providers
-│   │   ├── extraction/         # PDF, DOCX, TXT, MD text extractors
-│   │   ├── ingestion/          # Multi-stage ingestion pipeline
-│   │   ├── llm/                # Anthropic Claude 3.5 & system prompt
-│   │   ├── rag/                # End-to-end RAG service
-│   │   ├── seed/               # Seed data provisioner
-│   │   ├── storage/            # Private object storage provider
-│   │   └── types/              # Core domain TypeScript interfaces
-├── supabase/
-│   └── migrations/             # Production PostgreSQL + pgvector SQL migrations
-├── tests/                      # Vitest test suites (unit, security, rag-eval)
-├── docker-compose.yml          # Local PostgreSQL + pgvector container
-└── package.json
+├── knowledge_hub/              # Django project root
+│   ├── settings.py             # Settings, installed apps, templates, storage
+│   ├── urls.py                 # Root URL configuration
+│   └── wsgi.py                 # WSGI application entrypoint
+├── hub/                        # Main Django application
+│   ├── context_processors.py   # Injects session, current user, role into templates
+│   ├── management/commands/    # Management command: python manage.py seed_data
+│   ├── models.py               # Django ORM models (13 entities)
+│   ├── services/               # Core business & RAG services
+│   │   ├── chunking.py         # Token-aware chunker with headings & pages
+│   │   ├── citations.py        # Citation extraction & server validation
+│   │   ├── embeddings.py       # Deterministic mock & OpenAI embedding providers
+│   │   ├── extraction.py       # PDF, DOCX, MD, TXT text extraction
+│   │   ├── ingestion.py        # Ingestion pipeline & lifecycle manager
+│   │   ├── llm.py              # Anthropic Claude 3.5 Sonnet & system prompt
+│   │   ├── rag.py              # RAG pipeline orchestrator
+│   │   ├── rbac.py             # Role-based access control & document permissions
+│   │   ├── retrieval.py        # Permission-aware vector retrieval boundary
+│   │   ├── seed.py             # Seed data provisioner
+│   │   └── storage.py          # Private file storage
+│   ├── templates/hub/          # Django Templates
+│   │   ├── analytics.html      # KPI charts & telemetry
+│   │   ├── audit.html          # Security audit stream
+│   │   ├── base.html           # Master layout & sidebar persona switcher
+│   │   ├── chat.html           # Grounded chat with citation preview cards
+│   │   ├── documents.html      # Document library & upload modal
+│   │   ├── gaps.html           # Unanswered questions workflow
+│   │   ├── integrations.html   # Google Drive & SharePoint specs
+│   │   └── members.html        # Team roles & permissions matrix
+│   ├── tests/                  # Pytest test suites (unit, security, rag-eval, integration)
+│   ├── urls.py                 # App URL patterns
+│   └── views.py                # Django views & API endpoints
+├── supabase/migrations/        # Production PostgreSQL + pgvector SQL migrations
+├── requirements.txt            # Python dependencies
+├── pytest.ini                  # Pytest configuration
+└── README.md                   # Project documentation
 ```
 
 ---
 
 ## 🔒 Security Architecture Highlights
 
-1. **Row Level Security (RLS)**: Enforces organization boundary and document visibility rules directly in PostgreSQL.
+1. **Database-Level Retrieval Boundary**: Ingestion and vector retrieval filter by `organization_id` and document permissions on every query.
 2. **Untrusted Document Handling**: Document text is formatted as passive evidence blocks; system prompt explicitly forbids executing instructions contained inside documents.
 3. **Citation Integrity**: Frontends cannot manipulate citation links or view chunks from restricted documents without passing server authorization checks.
 4. **Audit Trail**: Every document upload, access rule modification, role promotion, and RAG query generates an immutable audit record.
-
----
-
-## 📄 Documentation Links
-
-- [Architecture & Data Flow Diagrams](./ARCHITECTURE.md)
-- [Security & Access Control Model](./SECURITY.md)
-- [RAG Evaluation Suite & Groundedness](./EVALUATION.md)
-- [Production Deployment Guide](./DEPLOYMENT.md)
-- [Troubleshooting & FAQ](./TROUBLESHOOTING.md)
-- [Client Presentation & Demo Script](./DEMO_SCRIPT.md)

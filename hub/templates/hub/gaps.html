@@ -1,0 +1,74 @@
+{% extends 'hub/base.html' %}
+
+{% block title %}Knowledge Gaps{% endblock %}
+
+{% block content %}
+<div class="flex-1 flex flex-col h-screen overflow-hidden bg-slate-950 text-slate-100 p-8">
+  <div class="pb-6 border-b border-slate-800">
+    <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+      <span>⚠️</span>
+      <span>Knowledge Gaps & Unanswered Questions</span>
+    </h1>
+    <p class="text-xs text-slate-400 mt-1">
+      Questions where the assistant abstained or users reported missing documentation, queued for editorial review.
+    </p>
+  </div>
+
+  <div class="mt-6 flex-1 overflow-y-auto border border-slate-800 rounded-xl bg-slate-900/60">
+    <table class="w-full text-left text-xs">
+      <thead class="bg-slate-900 border-b border-slate-800 text-slate-400 uppercase tracking-wider text-[10px] font-semibold sticky top-0">
+        <tr>
+          <th class="px-4 py-3">Unanswered Question</th>
+          <th class="px-4 py-3">Trigger Reason</th>
+          <th class="px-4 py-3">Status</th>
+          <th class="px-4 py-3">Reported At</th>
+          <th class="px-4 py-3 text-right">Workflow Action</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-800/60">
+        {% for gap in gaps %}
+          <tr class="hover:bg-slate-800/40 transition-colors">
+            <td class="px-4 py-3.5 font-medium text-slate-200 max-w-md">
+              <div class="flex items-start gap-2">
+                <span class="text-amber-400">❓</span>
+                <span>{{ gap.question_text }}</span>
+              </div>
+            </td>
+            <td class="px-4 py-3.5 text-slate-400">{{ gap.reason }}</td>
+            <td class="px-4 py-3.5">
+              <span class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase {% if gap.status == 'addressed' %}bg-emerald-950 text-emerald-400 border border-emerald-800{% elif gap.status == 'reviewed' %}bg-blue-950 text-blue-400 border border-blue-800{% else %}bg-amber-950 text-amber-400 border border-amber-800{% endif %}">
+                {{ gap.status }}
+              </span>
+            </td>
+            <td class="px-4 py-3.5 text-slate-400 font-mono text-[11px]">
+              {{ gap.created_at|date:"Y-m-d H:i" }}
+            </td>
+            <td class="px-4 py-3.5 text-right">
+              <form method="POST" class="inline">
+                {% csrf_token %}
+                <input type="hidden" name="gap_id" value="{{ gap.id }}" />
+                <select
+                  name="status"
+                  onchange="this.form.submit()"
+                  class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none"
+                >
+                  <option value="pending" {% if gap.status == 'pending' %}selected{% endif %}>Pending</option>
+                  <option value="reviewed" {% if gap.status == 'reviewed' %}selected{% endif %}>In Review</option>
+                  <option value="addressed" {% if gap.status == 'addressed' %}selected{% endif %}>Addressed (Doc Added)</option>
+                  <option value="dismissed" {% if gap.status == 'dismissed' %}selected{% endif %}>Dismissed</option>
+                </select>
+              </form>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" class="px-4 py-8 text-center text-slate-500">
+              No knowledge gaps currently open! All queries have been answered or resolved.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

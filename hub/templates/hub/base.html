@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Secure Internal Knowledge Hub{% endblock %} | Enterprise RAG</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #0b0f19;
+      color: #f1f5f9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 flex h-screen overflow-hidden antialiased">
+
+  <!-- Left Global Sidebar -->
+  <aside class="w-72 bg-slate-900 border-r border-slate-800 flex flex-col h-screen shrink-0 select-none">
+    <!-- Brand Header -->
+    <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 font-bold">
+          🔒
+        </div>
+        <div>
+          <h1 class="font-semibold text-slate-100 text-sm tracking-tight leading-tight">Secure Knowledge Hub</h1>
+          <p className="text-xs text-blue-400 font-medium">Django RAG Engine</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Persona Switcher -->
+    <div class="p-3 border-b border-slate-800/80 bg-slate-950/40">
+      <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center justify-between">
+        <span>Active Test Persona</span>
+        <span class="text-[10px] text-emerald-400 font-mono">RBAC Live</span>
+      </label>
+      <form action="{% url 'switch_user' %}" method="POST" id="personaForm">
+        {% csrf_token %}
+        <select
+          name="user_id"
+          onchange="document.getElementById('personaForm').submit()"
+          class="w-full bg-slate-900 border border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-slate-200 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500"
+        >
+          {% for du in demo_users %}
+            <option value="{{ du.id }}" {% if du.id == current_user.id %}selected{% endif %}>
+              {{ du.full_name }} ({{ du.role|upper }})
+            </option>
+          {% endfor %}
+        </select>
+      </form>
+      <div class="mt-1.5 flex items-center justify-between text-[11px] text-slate-400">
+        <span>🏢 {{ current_org.name }}</span>
+        <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-300 uppercase border border-slate-700">
+          {{ current_role }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Navigation Links -->
+    <nav class="flex-1 overflow-y-auto p-3 space-y-1 text-xs">
+      <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-2 py-1">
+        Knowledge Workspace
+      </div>
+
+      <a
+        href="{% url 'chat' %}"
+        class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_tab == 'chat' %}bg-blue-600 text-white shadow-sm{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}"
+      >
+        <span>💬</span>
+        <span>Knowledge Assistant</span>
+      </a>
+
+      <a
+        href="{% url 'documents' %}"
+        class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_tab == 'documents' %}bg-blue-600 text-white shadow-sm{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}"
+      >
+        <span>📁</span>
+        <span>Document Library</span>
+      </a>
+
+      <a
+        href="{% url 'integrations' %}"
+        class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_tab == 'integrations' %}bg-blue-600 text-white shadow-sm{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}"
+      >
+        <span>🔌</span>
+        <span>Cloud Connectors</span>
+      </a>
+
+      <!-- Administration Section -->
+      <div class="pt-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider px-2 py-1 flex items-center justify-between">
+        <span>Administration</span>
+        {% if not is_admin %}<span class="text-[9px] text-amber-500/80 font-normal">Admin Only</span>{% endif %}
+      </div>
+
+      {% if is_admin %}
+        <a
+          href="{% url 'members' %}"
+          class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_tab == 'members' %}bg-blue-600 text-white shadow-sm{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}"
+        >
+          <span>👥</span>
+          <span>Members & Roles</span>
+        </a>
+
+        <a
+          href="{% url 'analytics' %}"
+          class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_tab == 'analytics' %}bg-blue-600 text-white shadow-sm{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}"
+        >
+          <span>📊</span>
+          <span>Usage Analytics</span>
+        </a>
+
+        <a
+          href="{% url 'gaps' %}"
+          class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_tab == 'gaps' %}bg-blue-600 text-white shadow-sm{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}"
+        >
+          <span>⚠️</span>
+          <span>Knowledge Gaps</span>
+        </a>
+
+        <a
+          href="{% url 'audit' %}"
+          class="flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {% if active_tab == 'audit' %}bg-blue-600 text-white shadow-sm{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}"
+        >
+          <span>🛡️</span>
+          <span>Security Audit Logs</span>
+        </a>
+      {% else %}
+        <div class="space-y-1 opacity-40 cursor-not-allowed">
+          <div class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500">
+            <span>👥</span><span>Members & Roles</span>
+          </div>
+          <div class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500">
+            <span>📊</span><span>Usage Analytics</span>
+          </div>
+          <div class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500">
+            <span>⚠️</span><span>Knowledge Gaps</span>
+          </div>
+          <div class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500">
+            <span>🛡️</span><span>Security Audit Logs</span>
+          </div>
+        </div>
+      {% endif %}
+    </nav>
+
+    <!-- Footer Profile Info -->
+    <div class="p-3 border-t border-slate-800 text-[11px] text-slate-400 bg-slate-950/60">
+      <div class="flex items-center justify-between">
+        <span class="font-semibold text-slate-300">{{ current_user.full_name }}</span>
+        <span class="text-[10px] text-slate-400">{{ current_department }}</span>
+      </div>
+      <div class="text-[10px] text-slate-500 truncate mt-0.5">{{ current_user.email }}</div>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 flex flex-col h-screen overflow-hidden">
+    {% block content %}{% endblock %}
+  </main>
+
+</body>
+</html>
