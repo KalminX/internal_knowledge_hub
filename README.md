@@ -2,13 +2,14 @@
 
 [![Python](https://img.shields.io/badge/Python-3.13-blue.svg)](https://www.python.org/)
 [![Django](https://img.shields.io/badge/Django-5.2-green.svg)](https://www.djangoproject.com/)
+[![Google Gemini](https://img.shields.io/badge/Gemini-2.5%20Flash%20%2F%20Pro-4285F4.svg)](https://ai.google.dev/)
 [![Anthropic Claude](https://img.shields.io/badge/Claude-3.5%20Sonnet-purple.svg)](https://www.anthropic.com/)
-[![Pytest](https://img.shields.io/badge/Pytest-18%20Passing-brightgreen.svg)](https://pytest.org/)
+[![Pytest](https://img.shields.io/badge/Pytest-19%20Passing-brightgreen.svg)](https://pytest.org/)
 [![Security RBAC](https://img.shields.io/badge/Tenant%20Isolation-Server%20Enforced-emerald.svg)](./SECURITY.md)
 
 A private, multi-tenant AI knowledge assistant engineered with **Python, Django, and Django Templates** for company Standard Operating Procedures (SOPs), employee handbooks, engineering incident protocols, compliance policies, and operational documentation.
 
-Built with a **security-first retrieval architecture**, strictly grounded Anthropic Claude 3.5 generation, server-side validated source citations, explicit insufficient-evidence abstention, lifecycle document management, and administrative knowledge-gap observability.
+Built with a **security-first retrieval architecture**, strictly grounded **Google Gemini** & **Anthropic Claude** generation, server-side validated source citations, explicit insufficient-evidence abstention, lifecycle document management, and administrative knowledge-gap observability.
 
 ---
 

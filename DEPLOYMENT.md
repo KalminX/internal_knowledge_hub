@@ -1,92 +1,92 @@
-# Production Deployment Guide
+# Production Deployment Guide (Django + Gemini Enterprise RAG)
 
-This guide describes how to deploy the **Secure Internal Knowledge Hub** to production using Supabase (PostgreSQL + pgvector), Anthropic Claude API, and Vercel or Docker.
+This guide describes how to deploy the **Secure Internal Knowledge Hub** to production using Python 3.13, Django 5.2, PostgreSQL, Gunicorn, and Google Gemini / Anthropic Claude.
 
 ---
 
 ## 1. Prerequisites & Cloud Accounts
 
-- **Supabase Account** (or self-hosted PostgreSQL 16+ with `pgvector` and `uuid-ossp`)
-- **Anthropic API Key** (for Claude 3.5 Sonnet / Haiku generation)
-- **OpenAI API Key** (for `text-embedding-3-small` or Voyage embeddings)
-- **Vercel** or container host (AWS ECS, Google Cloud Run, Railway, or Fly.io)
+- **Python 3.13+ runtime**
+- **PostgreSQL 16+** (with `pgvector` extension for production vector search)
+- **Google Gemini API Key** (`GEMINI_API_KEY`) or **Anthropic API Key** (`ANTHROPIC_API_KEY`)
+- **Web Host**: AWS ECS / App Runner, Google Cloud Run, Render, Railway, Fly.io, or DigitalOcean
 
 ---
 
-## 2. Supabase / PostgreSQL Setup
+## 2. Environment Variables Configuration
 
-### Step A: Enable Extensions & Run Migrations
-In your Supabase SQL Editor or via Supabase CLI (`supabase db push`), execute the migrations in order:
-
-1. `supabase/migrations/20261010000001_initial_schema.sql`
-2. `supabase/migrations/20261010000002_rls_policies.sql`
-
-This sets up:
-- The `vector(1536)` IVFFlat cosine index
-- All tenant isolation tables
-- Stored procedure `match_document_chunks_authorized`
-- Row Level Security policies
-
-### Step B: Create Private Storage Bucket
-In Supabase Dashboard > Storage:
-- Create bucket name: `internal-knowledge-documents`
-- Set **Public bucket**: `Disabled` (Private)
-
----
-
-## 3. Environment Variables Configuration
-
-Configure the following environment variables in your deployment environment (e.g. Vercel Project Settings):
+Configure the following environment variables in your production environment:
 
 ```env
-# Application Runtime Mode
-NEXT_PUBLIC_APP_MODE=supabase
+# Django Settings
+DJANGO_SECRET_KEY=generate-a-strong-random-secret-key-for-prod
+DJANGO_DEBUG=False
+ALLOWED_HOSTS=hub.yourdomain.com,api.yourdomain.com
 
-# Supabase Credentials
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6...
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6...
-SUPABASE_STORAGE_BUCKET=internal-knowledge-documents
+# Database (PostgreSQL)
+# Format: postgres://USER:PASSWORD@HOST:PORT/NAME
+DATABASE_URL=postgres://hub_user:securepassword@db.yourdomain.com:5432/knowledge_hub
 
-# Anthropic Claude API
-ANTHROPIC_API_KEY=sk-ant-api03-...
+# LLM Providers (Priority: Gemini -> Claude -> Local Synthesizer)
+GEMINI_API_KEY=AIzaSy...
+GEMINI_MODEL=gemini-2.5-flash
+
+# Optional Anthropic Claude Fallback
+ANTHROPIC_API_KEY=sk-ant-...
 ANTHROPIC_MODEL=claude-3-5-sonnet-20241022
 
-# Dedicated Embedding Provider
-EMBEDDING_PROVIDER=openai
-EMBEDDING_API_KEY=sk-proj-...
-EMBEDDING_MODEL=text-embedding-3-small
-EMBEDDING_DIMENSION=1536
+# Dedicated Embedding Provider (mock | google | openai)
+EMBEDDING_PROVIDER=google
+EMBEDDING_MODEL=text-embedding-004
 
-# RAG Retrieval Quality Tuning
-RAG_SIMILARITY_THRESHOLD=0.55
+# RAG & Retrieval Tuning
+RAG_SIMILARITY_THRESHOLD=0.35
 RAG_MAX_CHUNKS=6
 RAG_MAX_CONTEXT_TOKENS=3500
 RAG_HYBRID_SEARCH_ENABLED=true
-MAX_UPLOAD_FILE_SIZE_MB=15
+MAX_UPLOAD_FILE_SIZE_MB=25
 ```
 
 ---
 
-## 4. Deploying to Vercel
+## 3. Database Migration & Initialization
 
 ```bash
-# Install Vercel CLI
-npm i -g vercel
+# Activate virtual environment
+source .venv/bin/activate
 
-# Link and deploy
-vercel
-vercel --prod
+# Apply migrations to PostgreSQL
+python manage.py migrate
+
+# (Optional) Seed initial demo organization and SOP baseline
+python manage.py seed_data
 ```
 
 ---
 
-## 5. Deploying with Docker Compose
-
-A standalone Docker Compose configuration is provided for self-hosted infrastructure:
+## 4. Running in Production with Gunicorn & WhiteNoise
 
 ```bash
-docker compose up -d
-npm run build
-npm start
+# Install production WSGI server
+pip install gunicorn
+
+# Collect static assets
+python manage.py collectstatic --noinput
+
+# Run Gunicorn WSGI workers
+gunicorn knowledge_hub.wsgi:application \
+  --bind 0.0.0.0:8000 \
+  --workers 4 \
+  --threads 2 \
+  --timeout 60 \
+  --access-logfile - \
+  --error-logfile -
 ```
+
+---
+
+## 5. Automated Health Check & Monitoring
+
+- **HTTP Liveness Probe**: `GET /chat/` (returns 200 OK)
+- **System Verification**: `python manage.py check --deploy`
+- **Security Audit Logs**: Monitored in real time at `/audit/`
