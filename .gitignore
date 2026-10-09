@@ -6,6 +6,19 @@ dist/
 .DS_Store
 *.pem
 .env*.local
+.env
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Python & Django
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+db.sqlite3
+private_storage/
+.pytest_cache/
+

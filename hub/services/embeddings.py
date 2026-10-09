@@ -62,6 +62,35 @@ class DeterministicMockEmbeddingProvider(BaseEmbeddingProvider):
         return [x / norm for x in vector]
 
 
+class GoogleGeminiEmbeddingProvider(BaseEmbeddingProvider):
+    provider_name = "google"
+    dimension = 768
+
+    def __init__(self, api_key: str, model_name: str = "text-embedding-004"):
+        self.api_key = api_key
+        self.model_name = model_name
+        from google import genai
+        self.client = genai.Client(api_key=api_key)
+
+    def generate_embeddings(self, texts: List[str]) -> List[List[float]]:
+        batch_size = 20
+        all_vectors = []
+
+        for i in range(0, len(texts), batch_size):
+            batch = texts[i:i + batch_size]
+            res = self.client.models.embed_content(
+                model=self.model_name,
+                contents=batch,
+            )
+            if hasattr(res, 'embeddings') and res.embeddings:
+                for emb in res.embeddings:
+                    all_vectors.append(list(emb.values))
+            elif hasattr(res, 'embedding') and res.embedding:
+                all_vectors.append(list(res.embedding.values))
+
+        return all_vectors
+
+
 class OpenAIEmbeddingProvider(BaseEmbeddingProvider):
     provider_name = "openai"
     dimension = 1536
@@ -96,10 +125,15 @@ class OpenAIEmbeddingProvider(BaseEmbeddingProvider):
 
 def get_embedding_provider() -> BaseEmbeddingProvider:
     provider_type = os.getenv('EMBEDDING_PROVIDER', 'mock').lower()
-    api_key = os.getenv('EMBEDDING_API_KEY')
+    gemini_key = os.getenv('GEMINI_API_KEY') or os.getenv('GOOGLE_API_KEY')
+    openai_key = os.getenv('EMBEDDING_API_KEY') or os.getenv('OPENAI_API_KEY')
 
-    if provider_type == 'openai' and api_key:
+    if provider_type in ('google', 'gemini') and gemini_key:
+        model = os.getenv('EMBEDDING_MODEL', 'text-embedding-004')
+        return GoogleGeminiEmbeddingProvider(gemini_key, model)
+
+    if provider_type == 'openai' and openai_key:
         model = os.getenv('EMBEDDING_MODEL', 'text-embedding-3-small')
-        return OpenAIEmbeddingProvider(api_key, model)
+        return OpenAIEmbeddingProvider(openai_key, model)
 
     return DeterministicMockEmbeddingProvider()

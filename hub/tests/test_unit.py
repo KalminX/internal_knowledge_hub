@@ -76,3 +76,35 @@ def test_rbac_hierarchy():
     assert has_minimum_role(OrgRole.ADMIN, OrgRole.EDITOR) is True
     assert has_minimum_role(OrgRole.EDITOR, OrgRole.MEMBER) is True
     assert has_minimum_role(OrgRole.MEMBER, OrgRole.EDITOR) is False
+
+
+def test_gemini_embedding_provider_mocked(monkeypatch):
+    from hub.services.embeddings import GoogleGeminiEmbeddingProvider, get_embedding_provider
+
+    class MockEmbedContentResponse:
+        def __init__(self, values):
+            class Emb:
+                def __init__(self, v):
+                    self.values = v
+            self.embeddings = [Emb(values)]
+
+    class MockGenaiClient:
+        def __init__(self, api_key):
+            self.api_key = api_key
+            self.models = self
+
+        def embed_content(self, model, contents):
+            return MockEmbedContentResponse([0.1] * 768)
+
+    monkeypatch.setattr('google.genai.Client', MockGenaiClient)
+    provider = GoogleGeminiEmbeddingProvider(api_key="fake-gemini-key")
+    res = provider.generate_embeddings(["test search query"])
+    assert len(res) == 1
+    assert len(res[0]) == 768
+    assert res[0][0] == 0.1
+
+    monkeypatch.setenv("EMBEDDING_PROVIDER", "google")
+    monkeypatch.setenv("GEMINI_API_KEY", "fake-key")
+    p = get_embedding_provider()
+    assert isinstance(p, GoogleGeminiEmbeddingProvider)
+

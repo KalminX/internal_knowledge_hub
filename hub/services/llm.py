@@ -2,7 +2,6 @@ import os
 import re
 from dataclasses import dataclass
 from typing import List, Optional
-import anthropic
 from hub.services.retrieval import RetrievalResult
 from hub.services.embeddings import STOP_WORDS
 
@@ -34,9 +33,6 @@ def generate_grounded_answer(
     authorized_chunks: List[RetrievalResult],
     context_text: str
 ) -> LLMGenerationResult:
-    api_key = os.getenv("ANTHROPIC_API_KEY")
-    model_name = os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022")
-
     if not authorized_chunks or not context_text.strip():
         return LLMGenerationResult(
             answer="I couldn't find enough information in the documents you have access to answer this reliably. You can submit this question for review.",
@@ -44,10 +40,53 @@ def generate_grounded_answer(
             model_used="rule-engine-abstention",
         )
 
-    # 1. Official Anthropic SDK if configured
-    if api_key and api_key.strip():
+    # 1. Google Gemini API
+    gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if gemini_key and gemini_key.strip():
+        gemini_model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
         try:
-            client = anthropic.Anthropic(api_key=api_key)
+            from google import genai
+            from google.genai import types
+
+            client = genai.Client(api_key=gemini_key)
+            prompt_content = f"QUESTION: {question}\n\nAVAILABLE EVIDENCE CHUNKS:\n{context_text}\n\nPlease provide your grounded response and cite chunk identifiers with [CHUNK_ID: <chunkId>]."
+
+            response = client.models.generate_content(
+                model=gemini_model,
+                contents=prompt_content,
+                config=types.GenerateContentConfig(
+                    system_instruction=SYSTEM_PROMPT,
+                    temperature=0.1,
+                    max_output_tokens=1024,
+                ),
+            )
+
+            answer = response.text or ""
+            is_abstaining = (
+                "couldn't find enough information" in answer.lower() or
+                "not enough information" in answer.lower()
+            )
+
+            prompt_tokens = response.usage_metadata.prompt_token_count if hasattr(response, 'usage_metadata') and response.usage_metadata else None
+            completion_tokens = response.usage_metadata.candidates_token_count if hasattr(response, 'usage_metadata') and response.usage_metadata else None
+
+            return LLMGenerationResult(
+                answer=answer,
+                insufficient_evidence=is_abstaining,
+                model_used=f"gemini ({gemini_model})",
+                prompt_tokens=prompt_tokens,
+                completion_tokens=completion_tokens,
+            )
+        except Exception as e:
+            print(f"Gemini API call failed, attempting fallback: {e}")
+
+    # 2. Anthropic Claude API (if configured)
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+    if anthropic_key and anthropic_key.strip():
+        model_name = os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022")
+        try:
+            import anthropic
+            client = anthropic.Anthropic(api_key=anthropic_key)
             prompt_content = f"QUESTION: {question}\n\nAVAILABLE EVIDENCE CHUNKS:\n{context_text}\n\nPlease provide your grounded response and cite chunk identifiers with [CHUNK_ID: <chunkId>]."
 
             response = client.messages.create(
@@ -66,14 +105,14 @@ def generate_grounded_answer(
             return LLMGenerationResult(
                 answer=answer,
                 insufficient_evidence=is_abstaining,
-                model_used=model_name,
+                model_used=f"claude ({model_name})",
                 prompt_tokens=response.usage.input_tokens if hasattr(response, 'usage') else None,
                 completion_tokens=response.usage.output_tokens if hasattr(response, 'usage') else None,
             )
         except Exception as e:
-            print(f"Anthropic API call failed, falling back to deterministic synthesizer: {e}")
+            print(f"Anthropic API call failed, falling back to local synthesizer: {e}")
 
-    # 2. Local Grounded Synthesizer Fallback
+    # 3. Local Deterministic Grounded Synthesizer Fallback
     return synthesize_local_grounded_answer(question, authorized_chunks)
 
 
