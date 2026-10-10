@@ -198,3 +198,16 @@ Execute the automated test suite (18 pytest tests covering unit logic, security 
 2. **Untrusted Document Handling**: Document text is formatted as passive evidence blocks; system prompt explicitly forbids executing instructions contained inside documents.
 3. **Citation Integrity**: Frontends cannot manipulate citation links or view chunks from restricted documents without passing server authorization checks.
 4. **Audit Trail**: Every document upload, access rule modification, role promotion, and RAG query generates an immutable audit record.
+
+
+## 🖼️ Application Screenshots
+
+| Knowledge Search & RAG Chat Interface | Multi-Source Document Repository |
+|:---:|:---:|
+| ![Search Interface](screenshots/scene1_overview.png) | ![Document Repository](screenshots/scene5_documents.png) |
+| *Hybrid vector + BM25 keyword search with source citation bubbles* | *Hierarchical document collections, sync status, & metadata* |
+
+| Search Analytics & Query Insights | Comprehensive Audit & Access Logs |
+|:---:|:---:|
+| ![Analytics](screenshots/scene6_analytics.png) | ![Audit Trail](screenshots/scene7_audit.png) |
+| *Query frequency, zero-result queries, & feedback analytics* | *Role-based permission monitoring and query audit logs* |
